@@ -41,6 +41,79 @@ body {
 }
 
 #container {
-  height: calc(100vh - 30px - 6px);
+  height: calc(100vh - 30px - 33px - 28px - 6px);
 }
+
+.signal-badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  border-bottom: solid 1px #ebedf1;
+  color: #fff;
+}
+
+.signal-badge-label {
+  opacity: 0.6;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.signal-badge-value {
+  font-size: 14px;
+  letter-spacing: 0.05em;
+}
+
+.signal-badge-score {
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+.signal-badge-reasons {
+  margin-left: auto;
+  opacity: 0.85;
+  font-weight: normal;
+  font-size: 12px;
+  text-align: right;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signal-BUY { background-color: #16a34a; }
+.signal-SELL { background-color: #dc2626; }
+.signal-NEUTRAL { background-color: #475569; }
+
+.backtest-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: #fff;
+  background-color: #1e293b;
+  border-bottom: solid 1px #0f172a;
+}
+
+.backtest-label {
+  opacity: 0.6;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.backtest-stat {
+  opacity: 0.95;
+  font-weight: normal;
+}
+
+.backtest-stat b {
+  font-weight: bold;
+  color: #e2e8f0;
+}
+
 

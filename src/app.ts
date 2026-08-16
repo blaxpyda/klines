@@ -1,10 +1,31 @@
 import { KLineChartPro } from '@klinecharts/pro'
-import BinanceDatafeed from './BinanceDatafeed'
+import SignalDatafeed from './SignalDatafeed'
+import type { SignalResult, BacktestResult } from './SignalDatafeed'
+
+const SIGNAL_LABEL: Record<string, string> = {
+  BUY: 'BUY',
+  SELL: 'SELL',
+  NEUTRAL: 'NEUTRAL'
+}
 
 export default function setupApp (root: HTMLDivElement) {
   const locale = 'en-US'
   root.innerHTML = `
     <div class="github"></div>
+    <div id="signal-badge" class="signal-badge signal-NEUTRAL">
+      <span class="signal-badge-label">SIGNAL</span>
+      <span class="signal-badge-value" data-signal>NEUTRAL</span>
+      <span class="signal-badge-score" data-score></span>
+      <span class="signal-badge-reasons" data-reasons></span>
+    </div>
+    <div id="backtest-panel" class="backtest-panel">
+      <span class="backtest-label">BACKTEST</span>
+      <span class="backtest-stat"><b data-trades>0</b> trades</span>
+      <span class="backtest-stat">Win <b data-winrate>0%</b></span>
+      <span class="backtest-stat">Return <b data-return>0%</b></span>
+      <span class="backtest-stat">Avg <b data-avg>0%</b></span>
+      <span class="backtest-stat">MaxDD <b data-dd>0%</b></span>
+    </div>
     <p class="announcement-bar">
       <svg viewBox="0 0 1024 1024" width="16" height="16">
         <path d="M512 184c44.3 0 87.3 8.7 127.6 25.7 39 16.5 74.1 40.2 104.3 70.3 30.2 30.2 53.8 65.3 70.3 104.3C831.3 424.7 840 467.7 840 512s-8.7 87.3-25.7 127.6c-16.5 39-40.2 74.1-70.3 104.3-30.2 30.2-65.3 53.8-104.3 70.3C599.3 831.3 556.3 840 512 840s-87.3-8.7-127.6-25.7c-39-16.5-74.1-40.2-104.3-70.3-30.2-30.2-53.8-65.3-70.3-104.3C192.7 599.3 184 556.3 184 512s8.7-87.3 25.7-127.6c16.5-39 40.2-74.1 70.3-104.3s65.3-53.8 104.3-70.3C424.7 192.7 467.7 184 512 184m0-120C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z" fill="#006EFF"/>
@@ -42,8 +63,43 @@ export default function setupApp (root: HTMLDivElement) {
     },
     period: { multiplier: 15, timespan: 'minute', text: '15m' },
     subIndicators: ['VOL', 'MACD'],
-    datafeed: new BinanceDatafeed()
+    datafeed: new SignalDatafeed(
+      (r: SignalResult) => updateSignalBadge(r),
+      (r: BacktestResult) => updateBacktestPanel(r)
+    )
   }
   new KLineChartPro(options)
+}
+
+function updateSignalBadge (r: SignalResult) {
+  const badge = document.querySelector<HTMLDivElement>('#signal-badge')
+  if (!badge) return
+  const signal = r.signal || 'NEUTRAL'
+  badge.className = `signal-badge signal-${signal}`
+  const value = badge.querySelector<HTMLElement>('[data-signal]')
+  const score = badge.querySelector<HTMLElement>('[data-score]')
+  const reasons = badge.querySelector<HTMLElement>('[data-reasons]')
+  if (value) value.textContent = SIGNAL_LABEL[signal] ?? signal
+  if (score) score.textContent = `score: ${r.score}`
+  if (reasons) reasons.textContent = (r.reasons || []).join('  ·  ')
+}
+
+function fmtPct (n: number) {
+  const v = Number.isFinite(n) ? n : 0
+  return `${v > 0 ? '+' : ''}${v.toFixed(2)}%`
+}
+
+function updateBacktestPanel (r: BacktestResult) {
+  const panel = document.querySelector<HTMLDivElement>('#backtest-panel')
+  if (!panel) return
+  const set = (sel: string, text: string) => {
+    const el = panel.querySelector<HTMLElement>(sel)
+    if (el) el.textContent = text
+  }
+  set('[data-trades]', String(r.totalTrades))
+  set('[data-winrate]', `${(r.winRate ?? 0).toFixed(1)}%`)
+  set('[data-return]', fmtPct(r.totalReturn))
+  set('[data-avg]', fmtPct(r.avgTrade))
+  set('[data-dd]', `${(r.maxDrawdown ?? 0).toFixed(2)}%`)
 }
 
